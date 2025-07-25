@@ -4,10 +4,8 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-// The port variable is no longer needed for Vercel, but we can keep it for local testing
-const port = 3000; 
+const port = 3000;
 
-// Temporarily hardcoding keys for debugging Vercel deployment
 // API Configuration
 const API_CONFIG = {
     
@@ -37,63 +35,82 @@ const API_CONFIG = {
     }
 };
 
-
 app.use(cors());
-// This tells Express where to find your static files like index.html, dashboard.js, etc.
-// Vercel handles this automatically, but it's good practice for local testing.
-app.use(express.static(__dirname)); 
+app.use(express.static(__dirname));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-// Shopify API Proxy
+// Shopify API Proxy with pagination handling
 app.get('/api/shopify/orders', async (req, res) => {
     const { startDate, endDate, store = 'kayesami' } = req.query;
     const config = API_CONFIG[store];
     if (!config) {
         return res.status(400).json({ error: 'Invalid store specified' });
     }
+
+    // Adjust dates to include full day for Shopify query
     const startDateTime = `${startDate}T00:00:00Z`;
     const endDateTime = `${endDate}T23:59:59Z`;
-    const url = `https://${config.shopify.storeDomain}/admin/api/${config.shopify.apiVersion}/orders.json?created_at_min=${startDateTime}&created_at_max=${endDateTime}&status=any`;
 
-    // V --- ADD THIS DIAGNOSTIC BLOCK --- V
-    console.log("--- SHOPIFY API REQUEST ---");
-    console.log("Store:", store);
-    console.log("Store Domain:", config.shopify.storeDomain);
-    // Safely log the token to see if it's loaded.
-    console.log("Access Token Loaded:", config.shopify.accessToken ? `Yes, starts with ${config.shopify.accessToken.substring(0, 5)}` : "NO, TOKEN IS MISSING OR UNDEFINED");
-    console.log("Request URL:", url);
-    // ^ --- END OF DIAGNOSTIC BLOCK --- ^
+    let allOrders = [];
+    // Shopify's max limit per page is 250. We will paginate.
+    let nextUrl = `https://${config.shopify.storeDomain}/admin/api/${config.shopify.apiVersion}/orders.json?created_at_min=${startDateTime}&created_at_max=${endDateTime}&status=any&limit=250`; 
+
     try {
-        const response = await axios.get(url, {
-            headers: {
-                'X-Shopify-Access-Token': config.shopify.accessToken,
-                'Content-Type': 'application/json'
+        while (nextUrl) {
+            const response = await axios.get(nextUrl, {
+                headers: {
+                    'X-Shopify-Access-Token': config.shopify.accessToken,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            allOrders.push(...response.data.orders);
+
+            // Check for Link header for pagination
+            const linkHeader = response.headers.link;
+            nextUrl = null; // Reset nextUrl for each iteration
+
+            if (linkHeader) {
+                const links = linkHeader.split(', ');
+                const nextLink = links.find(link => link.includes('rel="next"'));
+                if (nextLink) {
+                    // Extract URL from <url>; rel="next"
+                    nextUrl = nextLink.substring(nextLink.indexOf('<') + 1, nextLink.indexOf('>'));
+                }
             }
-        });
-        res.json(response.data);
+        }
+        res.json({ orders: allOrders }); // Return all fetched orders
     } catch (error) {
         console.error('Shopify API Error:', error.response?.data || error.message);
-        res.status(500).json({ error: 'Failed to fetch Shopify data', details: error.response?.data || error.message });
+        res.status(500).json({ 
+            error: 'Failed to fetch Shopify data', 
+            details: error.response?.data?.errors || error.message 
+        });
     }
 });
 
-// Meta API Proxy
+// Meta API Proxy (now returns raw spend, conversion and tax applied on frontend)
 app.get('/api/meta/insights', async (req, res) => {
     const { startDate, endDate, store = 'kayesami' } = req.query;
     const config = API_CONFIG[store];
     if (!config) {
         return res.status(400).json({ error: 'Invalid store specified' });
     }
+
+    // Meta API's time_increment=1 ensures daily data
     const url = `https://graph.facebook.com/${config.meta.apiVersion}/${config.meta.accountId}/insights?access_token=${config.meta.accessToken}&fields=spend&time_range[since]=${startDate}&time_range[until]=${endDate}&time_increment=1`;
 
     try {
         const response = await axios.get(url);
+        // Do NOT convert currency or apply tax here. Send raw Meta data.
         res.json(response.data);
     } catch (error) {
         console.error('Meta API Error:', error.response?.data || error.message);
-        res.status(500).json({ error: 'Failed to fetch Meta data', details: error.response?.data || error.message });
+        res.status(500).json({ 
+            error: 'Failed to fetch Meta data', 
+            details: error.response?.data?.error?.message || error.message 
+        });
     }
 });
 
-// **FINAL FIX:** This makes your Express app compatible with Vercel's serverless environment.
 module.exports = app;
