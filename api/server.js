@@ -7,33 +7,36 @@ const app = express();
 // The port variable is no longer needed for Vercel, but we can keep it for local testing
 const port = 3000; 
 
-// API Configuration - SECURELY loaded from Environment Variables
+// Temporarily hardcoding keys for debugging Vercel deployment
+// API Configuration
 const API_CONFIG = {
+    
     kayesami: {
         shopify: {
             storeDomain: 'z01h1u-b7.myshopify.com',
-            accessToken: process.env.KAYESAMI_SHOPIFY_TOKEN,
+            accessToken: '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',
             apiVersion: '2024-04'
         },
         meta: {
-            accessToken: process.env.KAYESAMI_META_TOKEN,
-            accountId: process.env.KAYESAMI_META_ACCOUNT_ID,
+            accessToken: 'EAAbHyJIq4NsBOy9d07NEk5jxOZBWh80dhmZBXuaXlyBVtUrihLZAFgFuK7xOeH4His5ckZAvZBP9ZANlipi3CNqWHGZCk7HkYaH4194b9hYaZAslR6nkKQOOCh6hhr4DO9TqaZBhgDveiB74Fx07W5ndupRA8A2zAwScvlo0pZBZCeITD9Vn9iWDMtjnTjYwPgoOxQZCyEpVkgnxZAZBol3MWSxh7NV1rZA', // Placeholder, ensure this is valid and secure
+            accountId: 'act_1965147297586827',
             apiVersion: 'v19.0'
         }
-    },
+    }, 
     ostriB: {
         shopify: {
             storeDomain: 'p5askk-jg.myshopify.com',
-            accessToken: process.env.OSTRIB_SHOPIFY_TOKEN,
+            accessToken: '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', // Placeholder, ensure this is valid and secure
             apiVersion: '2024-04'
         },
         meta: {
-            accessToken: process.env.OSTRIB_META_TOKEN,
-            accountId: process.env.OSTRIB_META_ACCOUNT_ID,
+            accessToken: 'EAAbHyJIq4NsBOy9d07NEk5jxOZBWh80dhmZBXuaXlyBVtUrihLZAFgFuK7xOeH4His5ckZAvZBP9ZANlipi3CNqWHGZCk7HkYaH4194b9hYaZAslR6nkKQOOCh6hhr4DO9TqaZBhgDveiB74Fx07W5ndupRA8A2zAwScvlo0pZBZCeITD9Vn9iWDMtjnTjYwPgoOxQZCyEpVkgnxZAZBol3MWSxh7NV1rZA', // Placeholder, ensure this is valid and secure
+            accountId: 'act_958697719780727',
             apiVersion: 'v19.0'
         }
     }
 };
+
 
 app.use(cors());
 // This tells Express where to find your static files like index.html, dashboard.js, etc.
