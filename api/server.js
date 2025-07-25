@@ -52,6 +52,14 @@ app.get('/api/shopify/orders', async (req, res) => {
     const endDateTime = `${endDate}T23:59:59Z`;
     const url = `https://${config.shopify.storeDomain}/admin/api/${config.shopify.apiVersion}/orders.json?created_at_min=${startDateTime}&created_at_max=${endDateTime}&status=any`;
 
+    // V --- ADD THIS DIAGNOSTIC BLOCK --- V
+    console.log("--- SHOPIFY API REQUEST ---");
+    console.log("Store:", store);
+    console.log("Store Domain:", config.shopify.storeDomain);
+    // Safely log the token to see if it's loaded.
+    console.log("Access Token Loaded:", config.shopify.accessToken ? `Yes, starts with ${config.shopify.accessToken.substring(0, 5)}` : "NO, TOKEN IS MISSING OR UNDEFINED");
+    console.log("Request URL:", url);
+    // ^ --- END OF DIAGNOSTIC BLOCK --- ^
     try {
         const response = await axios.get(url, {
             headers: {
