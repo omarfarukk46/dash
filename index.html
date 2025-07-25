@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Analytics Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --background-dark: #0a0a0a;
+            --glass-bg: rgba(175, 158, 255, 0.04);;
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-primary: #f0f0f0;
+            --text-secondary: #a0a0a0;
+            --accent-blue: #58a6ff;
+            --accent-blue-light: #79b5ff;
+            --positive-green: #2ecc71;
+            --negative-red: #ff6b6b;
+            --blob-color-1: rgba(255, 255, 255, 0.15);  /* Brighter white */
+           --blob-color-2: rgba(0, 0, 0, 0.15);       /* Darker black */
+           --blob-color-3: rgba(255, 255, 255, 0.1);  /* Secondary white */
+
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-dark);
+            color: var(--text-primary);
+            padding-top: 20px; 
+            margin: 0; 
+            overflow-x: hidden; 
+            min-height: 100vh;
+        }
+
+        /* Enhanced animated gradient background */
+        .animated-gradient {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh;
+            z-index: -1; 
+            overflow: hidden;
+        }
+
+
+
+
+        body{
+            background-image: url(
+
+https://images.unsplash.com/photo-1736843638421-9c3770d28c91?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D            );
+            background-size: cover;
+        }
+        /* Enhanced glass panel effect */
+        .glass-panel {
+            background-color: var(--glass-bg);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.3),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        /* Header styles */
+        .header { 
+            position: sticky; 
+            top: 20px; 
+            z-index: 1000; 
+            margin: 0 20px 20px; 
+            height: 80PX;
+            align-items: center;
+        }
+        .header-content { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 1rem 1.5rem; 
+        }
+        .header-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+        }
+        .store-logo { 
+            height: 30px; 
+            width: auto; 
+            max-width: 120px; 
+            object-fit: contain; 
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+        .live-indicator {
+            padding: 0.25rem 0.75rem; 
+            border-radius: 999px; 
+            background-color: rgba(88, 166, 255, 0.15);
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            color: var(--accent-blue-light);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+        }
+        .store-selector { 
+            display: flex; 
+            gap: 0.5rem; 
+            margin-left: 0.5rem; 
+        }
+        .store-btn {
+            padding: 0.25rem 0.75rem; 
+            border-radius: 999px; 
+            background-color: rgba(255, 255, 255, 0.05); 
+            font-size: 0.875rem;
+            font-weight: 500; 
+            color: var(--text-secondary); 
+            border: none; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .store-btn.active { 
+            background-color: rgba(88, 166, 255, 0.2); 
+            color: var(--accent-blue-light); 
+            border-color: rgba(88, 166, 255, 0.3);
+        }
+        .store-btn:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Date navigation */
+        .header-right { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+        }
+        .date-navigation { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+        }
+        .nav-btn, .refresh-btn {
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid var(--glass-border); 
+            color: var(--text-secondary); 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover, .refresh-btn:hover { 
+            background: rgba(255, 255, 255, 0.1); 
+            color: var(--text-primary); 
+        }
+        .date-display-wrapper {
+            padding: 0.5rem 1rem; 
+            border-radius: 0.5rem; 
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem;
+            border: 1px solid var(--glass-border);
+        }
+        .date-display-wrapper:hover { 
+            background: rgba(255, 255, 255, 0.1); 
+        }
+        .date-display { 
+            font-size: 0.875rem; 
+            font-weight: 500; 
+            color: var(--text-secondary); 
+            min-width: 160px; 
+            text-align: center; 
+        }
+        
+        /* Preset dropdown */
+        .preset-dropdown { 
+            position: relative; 
+        }
+        .preset-btn {
+            padding: 0.5rem 1rem; 
+            border-radius: 0.5rem; 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid var(--glass-border);
+            font-size: 0.875rem; 
+            font-weight: 500; 
+            color: var(--text-secondary); 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .preset-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .preset-menu {
+            position: absolute; 
+            top: 100%; 
+            right: 0; 
+            margin-top: 0.5rem; 
+            min-width: 160px; 
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 0.5rem; 
+            padding: 0.5rem 0; 
+            border: 1px solid var(--glass-border); 
+            display: none; 
+            z-index: 10;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .preset-menu.show { 
+            display: block; 
+        }
+        .preset-item { 
+            padding: 0.5rem 1rem; 
+            font-size: 0.875rem; 
+            color: var(--text-secondary); 
+            cursor: pointer; 
+            transition: all 0.15s ease;
+        }
+        .preset-item:hover { 
+            background: rgba(88, 166, 255, 0.2); 
+            color: var(--accent-blue-light); 
+        }
+
+        /* Dashboard content */
+        .dashboard-container { 
+            padding: 0 20px 40px; 
+            width: 100%;
+            max-width: 80vw; 
+            margin: 0 auto; 
+            animation: fadeIn 0.5s ease-out; 
+        }
+
+        /* Metric cards */
+        .metric-card { 
+            padding: 1.5rem; 
+            border-radius: 1rem; 
+            height: 100%; 
+            border-top: 4px solid transparent; 
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        .metric-card:nth-child(1) { border-top-color: var(--positive-green); }
+        .metric-card:nth-child(2) { border-top-color: var(--negative-red); }
+        .metric-card:nth-child(3) { border-top-color: var(--accent-blue); }
+        .metric-card:nth-child(4) { border-top-color: #fbc531; }
+        .metric-label { 
+            font-size: 0.875rem; 
+            color: var(--text-secondary); 
+            margin-bottom: 0.5rem; 
+        }
+        .metric-value { 
+            font-size: 2rem; 
+            font-weight: 700; 
+            color: var(--text-primary); 
+        }
+        .metric-change { 
+            font-size: 0.875rem; 
+            font-weight: 500; 
+        }
+        .positive-change { 
+            color: var(--positive-green); 
+        }
+        .negative-change { 
+            color: var(--negative-red); 
+        }
+
+        /* Chart containers */
+        .chart-container { 
+            padding: 1.5rem; 
+            border-radius: 1rem; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .chart-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start; 
+            margin-bottom: 1.5rem; 
+        }
+        .chart-title { 
+            font-size: 1.125rem; 
+            font-weight: 600; 
+            color: var(--text-primary); 
+        }
+        .chart-subtitle { 
+            font-size: 0.875rem; 
+            color: var(--text-secondary); 
+            margin-top: 0.25rem; 
+        }
+        .chart-legend { 
+            display: flex; 
+            gap: 1rem; 
+        }
+        .legend-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+        }
+        .legend-color { 
+            width: 12px; 
+            height: 12px; 
+            border-radius: 50%; 
+        }
+        .legend-label { 
+            font-size: 0.75rem; 
+            color: var(--text-secondary); 
+        }
+        .chart-canvas-wrapper { 
+            position: relative; 
+            flex-grow: 1; 
+            min-height: 300px; 
+        }
+        
+        /* Data table */
+        .data-table { 
+            border-radius: 1rem; 
+            overflow: hidden; 
+        }
+        .table-header { 
+            padding: 1rem 1.5rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--glass-border); 
+        }
+        .table-title { 
+            font-size: 1.125rem; 
+            font-weight: 600; 
+            color: var(--text-primary); 
+        }
+        .export-btn { 
+            padding: 0.5rem 1rem; 
+            border-radius: 0.5rem; 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary); 
+            font-size: 0.875rem; 
+            font-weight: 500; 
+            transition: all 0.2s ease;
+        }
+        .export-btn:hover { 
+            background: rgba(255, 255, 255, 0.1); 
+            color: var(--text-primary); 
+        }
+        
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            color: var(--text-primary); 
+        }
+        th { 
+            padding: 1rem 1.5rem; 
+            text-align: left; 
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            border-bottom: 1px solid var(--glass-border); 
+        }
+        td { 
+            padding: 1rem 1.5rem; 
+            border-bottom: 1px solid var(--glass-border); 
+            font-size: 0.875rem; 
+        }
+        tbody tr { 
+            transition: background-color 0.2s ease; 
+        }
+        tbody tr:hover { 
+            background-color: rgba(255, 255, 255, 0.05); 
+        }
+        .date-cell { 
+            font-weight: 500; 
+            color: var(--text-primary); 
+        }
+        .value-cell { 
+            text-align: right; 
+        }
+        .positive-value { 
+            color: var(--positive-green); 
+        }
+        .negative-value { 
+            color: var(--negative-red); 
+        }
+
+        /* Loading state */
+        .refresh-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error message */
+        .error-message {
+            background-color: rgba(255, 107, 107, 0.15);
+            border-left: 4px solid var(--negative-red);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+            display: none;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .filters-group {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+            
+            .date-navigation {
+                width: 100%;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+            }
+            
+            .preset-dropdown {
+                order: 1;
+                margin-left: auto;
+            }
+            
+            .refresh-btn {
+                margin-left: 0.5rem;
+            }
+        }
+
+        /* Compact, smooth date picker */
+        .daterangepicker {
+            background-color: var(--glass-bg) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 0.75rem !important;
+            font-family: 'Inter', sans-serif !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+            animation: fadeIn 0.2s ease-out;
+            margin-top: 10px !important;
+            padding: 0.5rem !important;
+            width: 280px !important;
+        }
+        
+        .daterangepicker .drp-calendar {
+            width: 100% !important;
+            max-width: none !important;
+            padding: 0.5rem !important;
+        }
+        
+        .daterangepicker .calendar-table {
+            width: 100% !important;
+            margin: 0 !important;
+            background-color: transparent;
+            border: none;
+        }
+
+        .weekend.off.ends.available{
+            background-color: transparent;
+        }
+        .off.ends.available{
+            background-color: transparent;
+        }
+        
+        .daterangepicker .calendar-table th,
+        .daterangepicker .calendar-table td {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 0.8rem !important;
+            line-height: 32px !important;
+            padding: 0 !important;
+            border-radius: 6px !important;
+            transition: all 0.15s ease !important;
+        }
+        
+        .daterangepicker .calendar-table th {
+            font-weight: 500 !important;
+            color: var(--text-secondary) !important;
+        }
+        
+        .daterangepicker .calendar-table td {
+            color: var(--text-primary) !important;
+        }
+        
+        .daterangepicker .calendar-table td.available:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .daterangepicker .calendar-table td.active,
+        .daterangepicker .calendar-table td.active:hover {
+            background-color: var(--accent-blue) !important;
+            color: white !important;
+            font-weight: 600 !important;
+        }
+        
+        .daterangepicker .calendar-table td.in-range {
+            background-color: rgba(88, 166, 255, 0.15) !important;
+        }
+        
+        .daterangepicker .drp-buttons {
+            border-top: 1px solid var(--glass-border) !important;
+            padding: 0.75rem !important;
+            background: transparent !important;
+        }
+        
+        .daterangepicker .drp-buttons .btn {
+            border-radius: 6px !important;
+            padding: 0.4rem 0.8rem !important;
+            font-size: 0.8rem !important;
+            transition: all 0.15s ease !important;
+        }
+        
+        .daterangepicker .drp-buttons .btn-primary {
+            background-color: var(--accent-blue) !important;
+            border-color: var(--accent-blue) !important;
+        }
+        
+        .daterangepicker .drp-buttons .btn-default {
+            background-color: transparent !important;
+            border: 1px solid var(--glass-border) !important;
+            color: var(--text-secondary) !important;
+        }
+        
+        .daterangepicker .drp-buttons .btn-default:hover {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+        }
+        
+        .daterangepicker .calendar-table .next span,
+        .daterangepicker .calendar-table .prev span {
+            border-color: var(--text-secondary) !important;
+        }
+        
+        .daterangepicker .calendar-table .next:hover span,
+        .daterangepicker .calendar-table .prev:hover span {
+            border-color: var(--text-primary) !important;
+        }
+        
+        .daterangepicker .monthselect, 
+        .daterangepicker .yearselect {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid var(--glass-border) !important;
+            color: var(--text-primary) !important;
+            border-radius: 6px !important;
+            padding: 0.2rem 0.5rem !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-gradient"></div>
+    
+    <header class="glass-panel header">
+        <div class="header-content">
+            <div class="header-left">
+                <img id="storeLogo" src="" alt="Store Logo" class="store-logo">
+                <span class="live-indicator">LIVE</span>
+                <div class="store-selector">
+                    <button class="store-btn" data-store="kayesami">Kayesami</button>
+                    <button class="store-btn" data-store="ostriB">OstriB</button>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="date-navigation">
+                    <button class="nav-btn" id="prevDateRange" title="Previous Period"><i class="fas fa-chevron-left"></i></button>
+                    <div class="date-display-wrapper" id="dateDisplayWrapper">
+                        <i class="fas fa-calendar-days text-secondary"></i>
+                        <span class="date-display" id="dateDisplay"></span>
+                    </div>
+                    <button class="nav-btn" id="nextDateRange" title="Next Period"><i class="fas fa-chevron-right"></i></button>
+                    
+                    <div class="preset-dropdown">
+                        <button class="preset-btn" id="datePresetDropdownToggle">Presets <i class="fas fa-chevron-down"></i></button>
+                        <div class="preset-menu" id="presetMenu">
+                            <div class="preset-item" data-range="today">Today</div>
+                            <div class="preset-item" data-range="yesterday">Yesterday</div>
+                            <div class="preset-item" data-range="last7">Last 7 Days</div>
+                            <div class="preset-item" data-range="last30">Last 30 Days</div>
+                            <div class="preset-item" data-range="thisMonth">This Month</div>
+                            <div class="preset-item" data-range="lastMonth">Last Month</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="refresh-btn" id="refreshData" title="Refresh Data"><i class="fas fa-sync-alt"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div id="error-message" class="error-message"></div>
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="glass-panel metric-card">
+                    <p class="metric-label">Total Revenue</p>
+                    <p class="metric-value" id="totalRevenue">৳0</p>
+                    <p class="metric-change positive-change" id="revenueChange"></p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="glass-panel metric-card">
+                    <p class="metric-label">Ad Spend</p>
+                    <p class="metric-value" id="adSpend">৳0</p>
+                    <p class="metric-change negative-change" id="adSpendChange"></p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="glass-panel metric-card">
+                    <p class="metric-label">ROAS</p>
+                    <p class="metric-value" id="roas">0.0x</p>
+                    <p class="metric-change positive-change" id="roasChange"></p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="glass-panel metric-card">
+                    <p class="metric-label">Units Sold</p>
+                    <p class="metric-value" id="unitsSold">0</p>
+                    <p class="metric-change positive-change" id="unitsSoldChange"></p>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="glass-panel chart-container">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Revenue & Ad Spend</h3>
+                            <p class="chart-subtitle" id="revenueChartSubtitle"></p>
+                        </div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: var(--accent-blue);"></div>
+                                <span class="legend-label">Revenue</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: var(--negative-red);"></div>
+                                <span class="legend-label">Ad Spend</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-wrapper"><canvas id="revenueChart"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="glass-panel chart-container">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">ROAS Trend</h3>
+                            <p class="chart-subtitle" id="roasChartSubtitle"></p>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-wrapper"><canvas id="roasChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="glass-panel data-table">
+                    <div class="table-header">
+                        <h3 class="table-title">Daily Performance</h3>
+                        <button class="export-btn" id="exportData"><i class="fas fa-download me-2"></i>Export CSV</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th class="value-cell">Revenue</th>
+                                    <th class="value-cell">Units Sold</th>
+                                    <th class="value-cell">Ad Spend (incl. 15% tax)</th>
+                                    <th class="value-cell">ROAS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
