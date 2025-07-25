@@ -4,114 +4,85 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const port = 3000;
+// The port variable is no longer needed for Vercel, but we can keep it for local testing
+const port = 3000; 
 
 // API Configuration - SECURELY loaded from Environment Variables
 const API_CONFIG = {
     kayesami: {
         shopify: {
             storeDomain: 'z01h1u-b7.myshopify.com',
-            accessToken: process.env.KAYESAMI_SHOPIFY_TOKEN, // Reads from Vercel
+            accessToken: process.env.KAYESAMI_SHOPIFY_TOKEN,
             apiVersion: '2024-04'
         },
         meta: {
-            accessToken: process.env.KAYESAMI_META_TOKEN, // Reads from Vercel
-            accountId: process.env.KAYESAMI_META_ACCOUNT_ID, // Reads from Vercel
+            accessToken: process.env.KAYESAMI_META_TOKEN,
+            accountId: process.env.KAYESAMI_META_ACCOUNT_ID,
             apiVersion: 'v19.0'
         }
     },
     ostriB: {
         shopify: {
             storeDomain: 'p5askk-jg.myshopify.com',
-            accessToken: process.env.OSTRIB_SHOPIFY_TOKEN, // Reads from Vercel
+            accessToken: process.env.OSTRIB_SHOPIFY_TOKEN,
             apiVersion: '2024-04'
         },
         meta: {
-            accessToken: process.env.OSTRIB_META_TOKEN, // Reads from Vercel
-            accountId: process.env.OSTRIB_META_ACCOUNT_ID, // Reads from Vercel
+            accessToken: process.env.OSTRIB_META_TOKEN,
+            accountId: process.env.OSTRIB_META_ACCOUNT_ID,
             apiVersion: 'v19.0'
         }
     }
 };
 
 app.use(cors());
-app.use(express.static(__dirname));
+// This tells Express where to find your static files like index.html, dashboard.js, etc.
+// Vercel handles this automatically, but it's good practice for local testing.
+app.use(express.static(__dirname)); 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-// Shopify API Proxy with pagination handling
+// Shopify API Proxy
 app.get('/api/shopify/orders', async (req, res) => {
     const { startDate, endDate, store = 'kayesami' } = req.query;
     const config = API_CONFIG[store];
     if (!config) {
         return res.status(400).json({ error: 'Invalid store specified' });
     }
-
-    // Adjust dates to include full day for Shopify query
     const startDateTime = `${startDate}T00:00:00Z`;
     const endDateTime = `${endDate}T23:59:59Z`;
-
-    let allOrders = [];
-    // Shopify's max limit per page is 250. We will paginate.
-    let nextUrl = `https://${config.shopify.storeDomain}/admin/api/${config.shopify.apiVersion}/orders.json?created_at_min=${startDateTime}&created_at_max=${endDateTime}&status=any&limit=250`; 
+    const url = `https://${config.shopify.storeDomain}/admin/api/${config.shopify.apiVersion}/orders.json?created_at_min=${startDateTime}&created_at_max=${endDateTime}&status=any`;
 
     try {
-        while (nextUrl) {
-            const response = await axios.get(nextUrl, {
-                headers: {
-                    'X-Shopify-Access-Token': config.shopify.accessToken,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            allOrders.push(...response.data.orders);
-
-            // Check for Link header for pagination
-            const linkHeader = response.headers.link;
-            nextUrl = null; // Reset nextUrl for each iteration
-
-            if (linkHeader) {
-                const links = linkHeader.split(', ');
-                const nextLink = links.find(link => link.includes('rel="next"'));
-                if (nextLink) {
-                    // Extract URL from <url>; rel="next"
-                    nextUrl = nextLink.substring(nextLink.indexOf('<') + 1, nextLink.indexOf('>'));
-                }
+        const response = await axios.get(url, {
+            headers: {
+                'X-Shopify-Access-Token': config.shopify.accessToken,
+                'Content-Type': 'application/json'
             }
-        }
-        res.json({ orders: allOrders }); // Return all fetched orders
+        });
+        res.json(response.data);
     } catch (error) {
         console.error('Shopify API Error:', error.response?.data || error.message);
-        res.status(500).json({ 
-            error: 'Failed to fetch Shopify data', 
-            details: error.response?.data?.errors || error.message 
-        });
+        res.status(500).json({ error: 'Failed to fetch Shopify data', details: error.response?.data || error.message });
     }
 });
 
-// Meta API Proxy (now returns raw spend, conversion and tax applied on frontend)
+// Meta API Proxy
 app.get('/api/meta/insights', async (req, res) => {
     const { startDate, endDate, store = 'kayesami' } = req.query;
     const config = API_CONFIG[store];
     if (!config) {
         return res.status(400).json({ error: 'Invalid store specified' });
     }
-
-    // Meta API's time_increment=1 ensures daily data
     const url = `https://graph.facebook.com/${config.meta.apiVersion}/${config.meta.accountId}/insights?access_token=${config.meta.accessToken}&fields=spend&time_range[since]=${startDate}&time_range[until]=${endDate}&time_increment=1`;
 
     try {
         const response = await axios.get(url);
-        // Do NOT convert currency or apply tax here. Send raw Meta data.
         res.json(response.data);
     } catch (error) {
         console.error('Meta API Error:', error.response?.data || error.message);
-        res.status(500).json({ 
-            error: 'Failed to fetch Meta data', 
-            details: error.response?.data?.error?.message || error.message 
-        });
+        res.status(500).json({ error: 'Failed to fetch Meta data', details: error.response?.data || error.message });
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-});
+// **FINAL FIX:** This makes your Express app compatible with Vercel's serverless environment.
+module.exports = app;
