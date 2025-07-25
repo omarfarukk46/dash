@@ -6,30 +6,29 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
-// API Configuration
+// API Configuration - SECURELY loaded from Environment Variables
 const API_CONFIG = {
-    
     kayesami: {
         shopify: {
             storeDomain: 'z01h1u-b7.myshopify.com',
-            accessToken: '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',
+            accessToken: process.env.KAYESAMI_SHOPIFY_TOKEN, // Reads from Vercel
             apiVersion: '2024-04'
         },
         meta: {
-            accessToken: 'EAAbHyJIq4NsBOy9d07NEk5jxOZBWh80dhmZBXuaXlyBVtUrihLZAFgFuK7xOeH4His5ckZAvZBP9ZANlipi3CNqWHGZCk7HkYaH4194b9hYaZAslR6nkKQOOCh6hhr4DO9TqaZBhgDveiB74Fx07W5ndupRA8A2zAwScvlo0pZBZCeITD9Vn9iWDMtjnTjYwPgoOxQZCyEpVkgnxZAZBol3MWSxh7NV1rZA', // Placeholder, ensure this is valid and secure
-            accountId: 'act_1965147297586827',
+            accessToken: process.env.KAYESAMI_META_TOKEN, // Reads from Vercel
+            accountId: process.env.KAYESAMI_META_ACCOUNT_ID, // Reads from Vercel
             apiVersion: 'v19.0'
         }
-    }, 
+    },
     ostriB: {
         shopify: {
             storeDomain: 'p5askk-jg.myshopify.com',
-            accessToken: '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', // Placeholder, ensure this is valid and secure
+            accessToken: process.env.OSTRIB_SHOPIFY_TOKEN, // Reads from Vercel
             apiVersion: '2024-04'
         },
         meta: {
-            accessToken: 'EAAbHyJIq4NsBOy9d07NEk5jxOZBWh80dhmZBXuaXlyBVtUrihLZAFgFuK7xOeH4His5ckZAvZBP9ZANlipi3CNqWHGZCk7HkYaH4194b9hYaZAslR6nkKQOOCh6hhr4DO9TqaZBhgDveiB74Fx07W5ndupRA8A2zAwScvlo0pZBZCeITD9Vn9iWDMtjnTjYwPgoOxQZCyEpVkgnxZAZBol3MWSxh7NV1rZA', // Placeholder, ensure this is valid and secure
-            accountId: 'act_958697719780727',
+            accessToken: process.env.OSTRIB_META_TOKEN, // Reads from Vercel
+            accountId: process.env.OSTRIB_META_ACCOUNT_ID, // Reads from Vercel
             apiVersion: 'v19.0'
         }
     }
